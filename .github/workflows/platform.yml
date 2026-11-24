@@ -14,7 +14,7 @@ jobs:
         path:
           - "modules/eks-cluster"
           - "modules/gke-cluster"
-    uses: AustinRP2008/platform-skills/.github/workflows/reusable-tofu-module.yml@a102f9add431d8d678f462c0a7ff4104b13397af
+    uses: AustinRP2008/platform-skills/.github/workflows/reusable-tofu-module.yml@84862088ac09a77321b313a11ba1fe11c0541fc3
     with:
       path: ${{ matrix.path }}
-      platform-ref: a102f9add431d8d678f462c0a7ff4104b13397af
+      platform-ref: 84862088ac09a77321b313a11ba1fe11c0541fc3
