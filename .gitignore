@@ -1,0 +1,7 @@
+.terraform/
+# Reusable modules do not pin provider builds; root configurations commit their own lock file.
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
