@@ -1,0 +1,41 @@
+name: security
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1"
+permissions:
+  contents: read
+jobs:
+  gitleaks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {fetch-depth: 0, persist-credentials: false}
+      - name: gitleaks on full history (findings redacted)
+        run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git --redact --no-banner /repo
+  osv-scanner:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - name: osv-scanner (known-vulnerable dependencies)
+        run: |
+          rc=0
+          docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner@sha256:a70ffffc2bfd33482953e5d6b64c6fcdb30239717a07b0f0d3ab2859ce3e4cde scan source -r /src || rc=$?
+          # 128 means no dependency manifests exist yet; any other non-zero is a finding or an error.
+          if [ "$rc" -eq 128 ]; then echo "no dependency manifests yet"; exit 0; fi
+          exit "$rc"
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: high
